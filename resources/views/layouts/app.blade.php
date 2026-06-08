@@ -4,70 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIJA PARKING - @yield('title')</title>
-    <!-- Gunakan Bootstrap dari CDN untuk kemudahan -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #f4f6f9; }
-        .sidebar { background-color: #fff; min-height: 100vh; border-right: 1px solid #dee2e6; }
-        .sidebar-brand { font-weight: bold; font-size: 1.2rem; padding: 20px; color: #333; }
-        .nav-link { color: #555; padding: 10px 20px; font-weight: 500; }
-        .nav-link.active { background-color: #f8f9fa; color: #c026d3; border-right: 4px solid #c026d3; }
-        .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #f4f6fb;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+        }
+
+        /* ─── SIDEBAR ─────────────────────────────────── */
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+            min-height: 100vh;
+            background-color: #f4f6fb;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* Brand */
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 8px;
+            margin-bottom: 28px;
+        }
+        .sidebar-brand .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: transparent;
+        }
+        .sidebar-brand .brand-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sidebar-brand .brand-name {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1e2a45;
+            letter-spacing: 0.3px;
+        }
+
+        /* Nav */
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+        .sidebar-nav .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            padding: 16px 10px 8px;
+        }
+
+        .sidebar-nav .nav-item { margin-bottom: 4px; }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.18s;
+            position: relative;
+        }
+        .sidebar-nav .nav-link:hover {
+            background: #fff;
+            color: #374151;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        /* Nav icon box */
+        .nav-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+            background: #e9ecef;
+            color: #6b7280;
+            transition: all 0.18s;
+        }
+
+        /* Active state */
+        .sidebar-nav .nav-link.active {
+            background: #fff;
+            color: #1e2a45;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        .sidebar-nav .nav-link.active .nav-icon-box {
+            background: linear-gradient(135deg, #c026d3, #9333ea);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(192, 38, 211, 0.35);
+        }
+        .sidebar-nav .nav-link.active .nav-label {
+            color: #1e2a45;
+            font-weight: 700;
+        }
+
+        /* Active bar */
+        .sidebar-nav .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: #c026d3;
+            border-radius: 3px 0 0 3px;
+        }
+
+        /* ─── TOPBAR ──────────────────────────────────── */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0 20px;
+            margin-bottom: 24px;
+            border-bottom: 1.5px solid #eef0f5;
+        }
+        .topbar-left .breadcrumb-text {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .topbar-left .breadcrumb-text a {
+            color: #9ca3af;
+            text-decoration: none;
+        }
+        .topbar-left .breadcrumb-text a:hover { color: #c026d3; }
+        .topbar-left .page-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #1e2a45;
+            margin: 0;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Sign Out button */
+        .btn-signout {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            color: #6b7280;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+        .btn-signout:hover {
+            border-color: #c026d3;
+            color: #c026d3;
+            background: #fdf4ff;
+        }
+
+        /* ─── MAIN CONTENT ────────────────────────────── */
+        .main-content {
+            flex: 1;
+            padding: 0 28px 28px 20px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* ─── GLOBAL HELPERS ──────────────────────────── */
         .btn-purple { background-color: #c026d3; color: white; border: none; }
         .btn-purple:hover { background-color: #a21caf; color: white; }
-        .content-header { padding: 20px 0; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-        .card { border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* ─── FOOTER ──────────────────────────────────── */
+        .layout-footer {
+            text-align: center;
+            font-size: 0.73rem;
+            color: #c4c9d4;
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #eef0f5;
+        }
+        .layout-footer a {
+            color: #c026d3;
+            font-weight: 700;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar" style="width: 250px;">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-square-parking"></i> SIJA PARKING
+<div class="d-flex">
+
+    {{-- ─── SIDEBAR ─────────────────────────────────── --}}
+    <div class="sidebar">
+
+        {{-- Brand --}}
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <img src="{{ asset('parkir.png') }}"
+                     alt="SIJA Parking Logo"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fa-solid fa-square-parking\' style=\'color:#fff; font-size:1.4rem;\'></i>';">
             </div>
-            <ul class="nav flex-column mt-3">
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('locations*') ? 'active' : '' }}" href="/locations">
-                        <i class="fa-solid fa-map-location-dot"></i> Location
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('transactions*') ? 'active' : '' }}" href="/transactions">
-                        <i class="fa-solid fa-money-bill-transfer"></i> Transaction
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('vehicle-types*') ? 'active' : '' }}" href="/vehicle-types">
-                        <i class="fa-solid fa-car"></i> Vehicle Type
-                    </a>
-                </li>
-                <li class="nav-item mt-4 px-3 text-muted" style="font-size: 0.8rem; font-weight: bold;">REPORTS</li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="fa-regular fa-file-lines"></i> Location Report</a></li>
-                <li class="nav-item"><a class="nav-link" href="#"><i class="fa-regular fa-file-lines"></i> Transaction Report</a></li>
-            </ul>
+            <span class="brand-name">SIJA PARKING</span>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <span class="text-muted">Pages / @yield('title')</span>
-                    <h4 class="mb-0 fw-bold">@yield('title')</h4>
-                </div>
-                <div>
-                    @yield('header_action')
-                    <button class="btn btn-light ms-2"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
-                </div>
-            </div>
+        {{-- Navigation --}}
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('locations*') ? 'active' : '' }}" href="/locations">
+                    <span class="nav-icon-box"><i class="fa-solid fa-map-location-dot"></i></span>
+                    <span class="nav-label">Location</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('transactions*') ? 'active' : '' }}" href="/transactions">
+                    <span class="nav-icon-box"><i class="fa-solid fa-money-bill-transfer"></i></span>
+                    <span class="nav-label">Transaction</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('vehicle-types*') ? 'active' : '' }}" href="/vehicle-types">
+                    <span class="nav-icon-box"><i class="fa-solid fa-car"></i></span>
+                    <span class="nav-label">Vehicle Type</span>
+                </a>
+            </li>
 
-            @yield('content')
-
-            <div class="text-center text-muted mt-5" style="font-size: 0.9rem;">
-                © 2025, made with ❤️ by Coding Lover for ASAS Ganjil Web And Mobile Development - SMKN 1 Cibinong.
-            </div>
-        </div>
+            {{-- Reports section --}}
+            <li class="nav-section-label">Reports</li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('reports/location*') ? 'active' : '' }}" href="/reports/location">
+                    <span class="nav-icon-box"><i class="fa-regular fa-file-lines"></i></span>
+                    <span class="nav-label">Location Report</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('reports/transaction*') ? 'active' : '' }}" href="/reports/transaction">
+                    <span class="nav-icon-box"><i class="fa-solid fa-file-invoice"></i></span>
+                    <span class="nav-label">Transaction Report</span>
+                </a>
+            </li>
+        </ul>
     </div>
+
+    {{-- ─── MAIN CONTENT ────────────────────────────── --}}
+    <div class="flex-grow-1 main-content">
+
+        {{-- Topbar --}}
+        <div class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb-text">
+                    <a href="#">Pages</a> / @yield('title')
+                </div>
+                <h4 class="page-title">@yield('title')</h4>
+            </div>
+            <div class="topbar-right">
+                @yield('header_action')
+                <a href="/logout" class="btn-signout"
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                </a>
+                <form id="logout-form" action="/logout" method="POST" style="display:none;">
+                    @csrf
+                </form>
+            </div>
+        </div>
+
+        {{-- Page Content --}}
+        @yield('content')
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@stack('scripts')
 </body>
 </html>

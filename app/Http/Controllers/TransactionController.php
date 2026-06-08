@@ -12,108 +12,159 @@ use Illuminate\Support\Facades\Storage;
 
 class TransactionController extends Controller
 {
-    // 1. Tampilan Dashboard
+    // ─────────────────────────────────────────
+    // Helper: pastikan folder tickets ada
+    // ─────────────────────────────────────────
+    private function ensureTicketFolder(): string
+    {
+        $folder = storage_path('app/public/tickets');
+
+        if (!file_exists($folder)) {
+            mkdir($folder, 0755, true);
+        }
+
+        return $folder;
+    }
+
+    // ─────────────────────────────────────────
+    // Helper: generate & simpan PDF ke storage
+    // ─────────────────────────────────────────
+    private function saveTicketPdf(Transaction $transaction): void
+    {
+        $folder   = $this->ensureTicketFolder();
+        $filePath = $folder . '/' . $transaction->no_tiket . '.pdf';
+
+        // Hanya simpan kalau belum ada (hindari generate ulang)
+        if (!file_exists($filePath)) {
+            $pdf = Pdf::loadView('transactions.ticket', ['transaction' => $transaction]);
+            $pdf->setPaper([0, 0, 226.77, 340.16]);
+            $pdf->save($filePath);
+        }
+    }
+
+    // ─────────────────────────────────────────
+    // 1. Dashboard
+    // ─────────────────────────────────────────
     public function index()
     {
-        $locations = Location::all();
+        $locations    = Location::all();
         $vehicleTypes = VehicleType::all();
-        $tickets = Transaction::whereNull('keluar')->orderBy('masuk', 'desc')->take(5)->get();
         
+        // Menampilkan 5 transaksi terbaru (baik yang masih aktif maupun sudah keluar)
+        // agar history harga bisa terlihat di sidebar dashboard.
+        $tickets      = Transaction::orderBy('masuk', 'desc')
+                            ->take(5)
+                            ->get();
+
         return view('transactions.index', compact('locations', 'vehicleTypes', 'tickets'));
     }
 
-    // 2. Tampilan Semua Transaksi (Data Table)
+    // ─────────────────────────────────────────
+    // 2. Semua Transaksi
+    // ─────────────────────────────────────────
     public function list()
     {
         $transactions = Transaction::orderBy('created_at', 'desc')->get();
         return view('transactions.list', compact('transactions'));
     }
 
-    // 3. Proses Kendaraan Masuk
+    // ─────────────────────────────────────────
+    // 3. Kendaraan Masuk
+    // ─────────────────────────────────────────
     public function enter(Request $request)
     {
         $request->validate([
             'id_lokasi' => 'required',
-            'id_jenis' => 'required',
-            'no_polisi' => 'required'
+            'id_jenis'  => 'required',
+            'no_polisi' => 'nullable',
         ]);
 
-        $jenis = VehicleType::findOrFail($request->id_jenis);
-        
-        // Generate No Tiket (TahunBulanTanggalJamMenitDetik + ID Lokasi)
+        $jenis    = VehicleType::findOrFail($request->id_jenis);
         $no_tiket = date('YmdHis') . $request->id_lokasi;
 
         $transaction = Transaction::create([
-            'id_lokasi' => $request->id_lokasi,
-            'no_tiket' => $no_tiket,
-            'no_polisi' => strtoupper($request->no_polisi),
-            'id_jenis' => $request->id_jenis,
-            'masuk' => Carbon::now(),
-            'perjam_pertama' => $jenis->perjam_pertama,
+            'id_lokasi'         => $request->id_lokasi,
+            'no_tiket'          => $no_tiket,
+            'no_polisi'         => strtoupper($request->no_polisi),
+            'id_jenis'          => $request->id_jenis,
+            'masuk'             => Carbon::now(),
+            'perjam_pertama'    => $jenis->perjam_pertama,
             'perjam_berikutnya' => $jenis->perjam_berikutnya,
-            'max_perhari' => $jenis->max_perhari,
+            'max_perhari'       => $jenis->max_perhari,
         ]);
 
-        // FITUR BARU: Generate dan Simpan file PDF fisik ke storage/app/public/tickets/
-        $tiket_data = Transaction::with(['location', 'vehicleType'])->find($transaction->id);
-        $pdf = Pdf::loadView('transactions.ticket', ['transaction' => $tiket_data]);
-        Storage::put('public/tickets/' . $no_tiket . '.pdf', $pdf->output());
+        // Load relasi agar view tiket lengkap
+        $transaction->load(['location', 'vehicleType']);
 
-        return redirect('/transactions')->with('masuk_success', $transaction->id);
+        // Simpan PDF ke storage/app/public/tickets/{no_tiket}.pdf
+        $this->saveTicketPdf($transaction);
+
+        return redirect()->route('transactions.index')
+                         ->with('masuk_success', $transaction->id);
     }
 
-    // 4. Proses Kendaraan Keluar
+    // ─────────────────────────────────────────
+    // 4. Kendaraan Keluar
+    // ─────────────────────────────────────────
     public function exit(Request $request)
     {
-        $transaction = Transaction::where('no_tiket', $request->no_tiket)->whereNull('keluar')->first();
+        $transaction = Transaction::where('no_tiket', $request->no_tiket)
+            ->whereNull('keluar')
+            ->first();
 
         if (!$transaction) {
             return back()->with('error', 'Tiket tidak ditemukan atau kendaraan sudah keluar.');
         }
 
-        $waktuMasuk = Carbon::parse($transaction->masuk);
+        $waktuMasuk  = Carbon::parse($transaction->masuk);
         $waktuKeluar = Carbon::now();
-        $totalMenit = $waktuMasuk->diffInMinutes($waktuKeluar);
-        
-        // ATURAN 1: 1 Menit = 1 Jam (Untuk simulasi ujian)
-        $totalJam = $totalMenit;
-        if ($totalJam < 1) {
-            $totalJam = 1; 
-        }
+        $totalMenit  = max(1, $waktuMasuk->diffInMinutes($waktuKeluar));
 
-        // Hitung Total Bayar berdasarkan ATURAN 2 & 3
-        if ($totalJam <= 24) {
-            $totalBayar = $transaction->perjam_pertama;
-            
-            if ($totalJam > 1) {
-                $totalBayar += ($totalJam - 1) * $transaction->perjam_berikutnya;
-            }
+        if ($totalMenit <= 1440) {
+            $totalBayar = $transaction->perjam_pertama
+                + ($transaction->perjam_berikutnya * ($totalMenit - 1));
 
             if ($totalBayar > $transaction->max_perhari) {
                 $totalBayar = $transaction->max_perhari;
             }
         } else {
-            $hari = floor($totalJam / 24); 
-            $tarifDiskon = $transaction->max_perhari * 0.6; 
-            $totalBayar = $hari * $tarifDiskon;
+            $totalHari   = floor($totalMenit / 1440);
+            $tarifHarian = $transaction->max_perhari * 0.6;
+            $totalBayar  = $totalHari * $tarifHarian;
         }
 
         $transaction->update([
-            'keluar' => $waktuKeluar,
-            'total_jam' => $totalJam,
-            'total_bayar' => $totalBayar
+            'keluar'      => $waktuKeluar,
+            'total_jam'   => $totalMenit,
+            'total_bayar' => $totalBayar,
         ]);
 
-        return redirect('/transactions')->with('keluar_success', $transaction);
+        return redirect()->route('transactions.index')
+                         ->with('keluar_success', $transaction);
     }
 
-    // 5. Cetak PDF
+    // ─────────────────────────────────────────
+    // 5. Download PDF (tombol download eksplisit)
+    // ─────────────────────────────────────────
+    public function viewTicket($id)
+    {
+        $transaction = Transaction::with(['location', 'vehicleType'])->findOrFail($id);
+        
+        // Sesuaikan 'pdf.ticket' dengan nama view blade untuk layout PDF Anda
+        $pdf = Pdf::loadView('pdf.ticket', compact('transaction'));
+        
+        // Stream menampilkan di browser, bukan langsung download
+        return $pdf->stream('Tiket_' . $transaction->no_tiket . '.pdf');
+    }
+
+    /**
+     * Mengunduh PDF (tetap dipertahankan sesuai route Anda)
+     */
     public function printTicket($id)
     {
         $transaction = Transaction::with(['location', 'vehicleType'])->findOrFail($id);
-        $pdf = Pdf::loadView('transactions.ticket', compact('transaction'));
+        $pdf = Pdf::loadView('pdf.ticket', compact('transaction'));
         
-        // Mengunduh langsung PDF-nya
-        return $pdf->download('Tiket_'.$transaction->no_tiket.'.pdf');
+        return $pdf->download('Tiket_' . $transaction->no_tiket . '.pdf');
     }
 }
