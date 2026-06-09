@@ -27,6 +27,25 @@ class TransactionController extends Controller
     }
 
     // ─────────────────────────────────────────
+    // Helper: tentukan kategori kendaraan
+    // ─────────────────────────────────────────
+    private function getVehicleCategory($jenis): string
+    {
+        $jenis = strtolower(trim($jenis));
+        
+        $motorcycleKeywords = ['motorcycle','motor','sepeda motor','mtr','bike','motorbike'];
+        $carKeywords = ['car','mobil','sedan','mpv','suv','automobile'];
+        
+        foreach ($motorcycleKeywords as $kw) {
+            if (strpos($jenis, $kw) !== false) return 'motorcycle';
+        }
+        foreach ($carKeywords as $kw) {
+            if (strpos($jenis, $kw) !== false) return 'car';
+        }
+        return 'other';
+    }
+
+    // ─────────────────────────────────────────
     // Helper: generate & simpan PDF ke storage
     // ─────────────────────────────────────────
     private function saveTicketPdf(Transaction $transaction): void
@@ -81,6 +100,20 @@ class TransactionController extends Controller
 
         $jenis    = VehicleType::findOrFail($request->id_jenis);
         $no_tiket = date('YmdHis') . $request->id_lokasi;
+        $lokasi   = Location::findOrFail($request->id_lokasi);
+
+        $kategori = $this->getVehicleCategory($jenis->jenis);
+
+        if ($kategori === 'motorcycle') {
+            if ($lokasi->max_motorcycle <= 0) return back()->with('error', 'Kapasitas motor penuh!');
+            $lokasi->decrement('max_motorcycle');
+        } elseif ($kategori === 'car') {
+            if ($lokasi->max_car <= 0) return back()->with('error', 'Kapasitas mobil penuh!');
+            $lokasi->decrement('max_car');
+        } else {
+            if ($lokasi->max_other <= 0) return back()->with('error', 'Kapasitas kendaraan lain penuh!');
+            $lokasi->decrement('max_other');
+        }
 
         $transaction = Transaction::create([
             'id_lokasi'         => $request->id_lokasi,
@@ -114,6 +147,18 @@ class TransactionController extends Controller
 
         if (!$transaction) {
             return back()->with('error', 'Tiket tidak ditemukan atau kendaraan sudah keluar.');
+        }
+
+        $lokasi = Location::findOrFail($transaction->id_lokasi);
+        $jenis = VehicleType::findOrFail($transaction->id_jenis);
+        $kategori = $this->getVehicleCategory($jenis->jenis);
+
+        if ($kategori === 'motorcycle') {
+            $lokasi->increment('max_motorcycle');
+        } elseif ($kategori === 'car') {
+            $lokasi->increment('max_car');
+        } else {
+            $lokasi->increment('max_other');
         }
 
         $waktuMasuk  = Carbon::parse($transaction->masuk);
@@ -151,7 +196,7 @@ class TransactionController extends Controller
         $transaction = Transaction::with(['location', 'vehicleType'])->findOrFail($id);
         
         // Sesuaikan 'pdf.ticket' dengan nama view blade untuk layout PDF Anda
-        $pdf = Pdf::loadView('pdf.ticket', compact('transaction'));
+        $pdf = Pdf::loadView('transactions.ticket', compact('transaction'));
         
         // Stream menampilkan di browser, bukan langsung download
         return $pdf->stream('Tiket_' . $transaction->no_tiket . '.pdf');
@@ -163,7 +208,7 @@ class TransactionController extends Controller
     public function printTicket($id)
     {
         $transaction = Transaction::with(['location', 'vehicleType'])->findOrFail($id);
-        $pdf = Pdf::loadView('pdf.ticket', compact('transaction'));
+        $pdf = Pdf::loadView('transactions.ticket', compact('transaction'));
         
         return $pdf->download('Tiket_' . $transaction->no_tiket . '.pdf');
     }
