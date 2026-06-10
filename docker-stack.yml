@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    image: parkir_app:latest
+    environment:
+      - DB_CONNECTION=mariadb
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=parkir
+      - DB_USERNAME=root
+      - DB_PASSWORD=rahasia_parkir
+      - SESSION_DRIVER=database
+      - CACHE_STORE=database
+      - QUEUE_CONNECTION=database
+      - TRUSTED_PROXIES=*
+      - SESSION_SECURE_COOKIE=true
+    volumes:
+      - /opt/parkir:/var/www/html
+    deploy:
+      replicas: 2 # Akan menjalankan 2 container PHP secara menyebar
+      restart_policy:
+        condition: on-failure
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - /opt/parkir:/var/www/html
+      - /opt/parkir/nginx-container.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    deploy:
+      replicas: 2 # Akan menjalankan 2 container Nginx Web secara menyebar
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_DATABASE: parkir
+      MYSQL_ROOT_PASSWORD: rahasia_parkir
+    volumes:
+      - dbdata:/var/lib/mysql
+    deploy:
+      # PENTING: Database harus "dikunci" di node manager agar datanya tidak tercecer
+      placement:
+        constraints:
+          - node.role == manager 
+
+volumes:
+  dbdata:
