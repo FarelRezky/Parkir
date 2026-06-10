@@ -1,0 +1,6 @@
+- [ ] Periksa implementasi alert SweetAlert2 di parkir/resources/views/transactions/index.blade.php
+- [ ] Rapatkan semua alert menjadi satu helper function dan samakan style (tombol, backdrop, allowOutsideClick)
+- [ ] Samakan perilaku alert masuk_success (success + redirect) dan error (error + confirm)
+- [ ] Samakan perilaku alert keluar_success (success dengan html + confirm)
+- [ ] Pastikan tidak ada duplikasi script CDN (SweetAlert2) dalam halaman
+- [ ] Uji manual: masuk/keluar/error untuk validasi tampilan alert
