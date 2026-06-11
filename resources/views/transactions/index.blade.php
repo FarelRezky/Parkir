@@ -212,6 +212,13 @@
         100% { box-shadow: 0 0 0 0   rgba(192,38,211,0);   }
     }
 
+    @media (max-width: 768px) {
+        .top-row-wrapper { flex-direction: column; }
+        .clock-col { flex: none; height: auto; margin-bottom: 16px; }
+        .clock-card { padding: 24px 16px; }
+        .location-card { flex: 0 0 calc(50% - 7px); }
+    }
+
     .location-toast {
         position: fixed; bottom: 28px; left: 50%;
         transform: translateX(-50%) translateY(80px);

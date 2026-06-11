@@ -150,6 +150,10 @@
             margin-bottom: 24px;
             border-bottom: 1.5px solid #eef0f5;
         }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+        }
         .topbar-left .breadcrumb-text {
             font-size: 0.75rem;
             color: #9ca3af;
@@ -223,13 +227,90 @@
             font-weight: 700;
             text-decoration: none;
         }
+
+        /* ─── RESPONSIVE ──────────────────────────────── */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            z-index: 1030;
+        }
+        .sidebar-backdrop.show {
+            display: block;
+        }
+        .mobile-toggle {
+            display: none;
+        }
+        
+        /* Utility for responsive tables without breaking layout */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                bottom: 0;
+                z-index: 1040;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .main-content {
+                padding: 0 16px 20px 16px;
+                width: 100%;
+            }
+            .mobile-toggle {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 38px;
+                height: 38px;
+                border: none;
+                background: #fff;
+                border-radius: 8px;
+                color: #1e2a45;
+                font-size: 1.1rem;
+                margin-right: 12px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            }
+            .topbar {
+                padding: 16px 0;
+            }
+            .topbar-left .page-title {
+                font-size: 1.1rem;
+            }
+            .btn-signout {
+                padding: 8px 12px;
+            }
+            .btn-signout span {
+                display: none;
+            }
+            .btn-signout i {
+                margin: 0;
+            }
+            .topbar-right {
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 <div class="d-flex">
 
     {{-- ─── SIDEBAR ─────────────────────────────────── --}}
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
 
         {{-- Brand --}}
         <div class="sidebar-brand">
@@ -285,16 +366,21 @@
         {{-- Topbar --}}
         <div class="topbar">
             <div class="topbar-left">
-                <div class="breadcrumb-text">
-                    <a href="#">Pages</a> / @yield('title')
+                <button class="mobile-toggle" id="mobileToggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div>
+                    <div class="breadcrumb-text">
+                        <a href="#">Pages</a> / @yield('title')
+                    </div>
+                    <h4 class="page-title">@yield('title')</h4>
                 </div>
-                <h4 class="page-title">@yield('title')</h4>
             </div>
             <div class="topbar-right">
                 @yield('header_action')
                 <a href="/logout" class="btn-signout"
                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span>
                 </a>
                 <form id="logout-form" action="/logout" method="POST" style="display:none;">
                     @csrf
@@ -309,6 +395,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('show');
+        document.getElementById('sidebarBackdrop').classList.toggle('show');
+    }
+</script>
 @stack('scripts')
 </body>
 </html>
