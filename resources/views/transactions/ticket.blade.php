@@ -69,25 +69,25 @@
             margin-bottom: 2px;
         }
 
-        /* Perbaikan pada baris data agar sejajar sempurna */
-        .data-row {
-            display: flex;
+        /* Perbaikan pada baris data agar sejajar sempurna (DomPDF mendukung table lebih baik dari flexbox) */
+        .data-table {
+            width: 100%;
             margin: 3px 0;
             font-size: 10px;
+            border-collapse: collapse;
         }
-
-        .data-label {
-            width: 60px; /* Ukuran pas untuk teks 'No Tiket' & 'Tanggal' */
-            text-align: left;
+        .data-table td {
+            vertical-align: top;
+            padding: 2px 0;
         }
-
-        .data-colon {
-            width: 15px; /* Titik dua dibuat di tengah jarak */
+        .td-label {
+            width: 55px;
+        }
+        .td-colon {
+            width: 10px;
             text-align: center;
         }
-
-        .data-value {
-            flex: 1;
+        .td-value {
             text-align: left;
         }
 
@@ -125,16 +125,18 @@
     <div class="line-dashed"></div>
 
     {{-- ===== DATA TIKET ===== --}}
-    <div class="data-row">
-        <div class="data-label">No Tiket</div>
-        <div class="data-colon">:</div>
-        <div class="data-value">{{ $transaction->no_tiket }}</div>
-    </div>
-    <div class="data-row">
-        <div class="data-label">Tanggal</div>
-        <div class="data-colon">:</div>
-        <div class="data-value">{{ \Carbon\Carbon::parse($transaction->masuk)->format('Y-m-d H:i:s') }}</div>
-    </div>
+    <table class="data-table">
+        <tr>
+            <td class="td-label">No Tiket</td>
+            <td class="td-colon">:</td>
+            <td class="td-value">{{ $transaction->no_tiket }}</td>
+        </tr>
+        <tr>
+            <td class="td-label">Tanggal</td>
+            <td class="td-colon">:</td>
+            <td class="td-value">{{ \Carbon\Carbon::parse($transaction->masuk)->format('Y-m-d H:i:s') }}</td>
+        </tr>
+    </table>
 
     <div class="line-dashed"></div>
 
