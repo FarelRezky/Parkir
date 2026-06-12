@@ -5,11 +5,15 @@ use App\Http\Controllers\VehicleTypeController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DashboardController;
 
-// Root redirect ke transactions
+// Root redirect ke dashboard
 Route::get('/', function () {
-    return redirect()->route('transactions.index');
+    return redirect()->route('dashboard.index');
 });
+
+// Dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
 // Vehicle Type
 Route::resource('vehicle-types', VehicleTypeController::class)->only(['index', 'create', 'store']);
