@@ -197,6 +197,7 @@ class TransactionController extends Controller
         
         // Sesuaikan 'pdf.ticket' dengan nama view blade untuk layout PDF Anda
         $pdf = Pdf::loadView('transactions.ticket', compact('transaction'));
+        $pdf->setPaper([0, 0, 226.77, 340.16]);
         
         // Stream menampilkan di browser, bukan langsung download
         return $pdf->stream('Tiket_' . $transaction->no_tiket . '.pdf');
@@ -209,6 +210,7 @@ class TransactionController extends Controller
     {
         $transaction = Transaction::with(['location', 'vehicleType'])->findOrFail($id);
         $pdf = Pdf::loadView('transactions.ticket', compact('transaction'));
+        $pdf->setPaper([0, 0, 226.77, 340.16]);
         
         return $pdf->download('Tiket_' . $transaction->no_tiket . '.pdf');
     }
