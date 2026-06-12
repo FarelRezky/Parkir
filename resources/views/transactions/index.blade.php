@@ -3,7 +3,7 @@
 @section('title', 'Transaction')
 
 @section('header_action')
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2 w-100">
         <button class="btn btn-vehicle-type" id="btn-motorcycle" onclick="selectVehicleType('motorcycle', this)">
             <i class="fa-solid fa-motorcycle me-1"></i> MOTORCYCLE
         </button>
@@ -216,7 +216,7 @@
         .top-row-wrapper { flex-direction: column; }
         .clock-col { flex: none; height: auto; margin-bottom: 16px; }
         .clock-card { padding: 24px 16px; }
-        .location-card { flex: 0 0 calc(50% - 7px); }
+        .location-card { flex: 0 0 100%; margin-bottom: 10px; }
     }
 
     .location-toast {
@@ -348,7 +348,7 @@
     .td-cost.empty { color: #9ca3af; font-weight: 400; }
     .empty-state { text-align: center; padding: 40px 0; color: #9ca3af; font-size: 0.85rem; }
     .empty-state i { font-size: 2.5rem; color: #e0d0e8; display: block; margin-bottom: 10px; }
-    .table-wrapper { overflow-x: auto; }
+    .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
 </style>
 
 {{-- Data untuk JS --}}

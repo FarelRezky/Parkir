@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('parkir.png') }}">
 
     <style>
         * { box-sizing: border-box; }
@@ -285,6 +286,9 @@
                 box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             }
             .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
                 padding: 16px 0;
             }
             .topbar-left .page-title {
@@ -294,12 +298,12 @@
                 padding: 8px 12px;
             }
             .btn-signout span {
-                display: none;
-            }
-            .btn-signout i {
-                margin: 0;
+                display: inline; /* Keep sign out text visible if possible, or hide it if we want */
             }
             .topbar-right {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: flex-start;
                 gap: 8px;
             }
         }
@@ -324,6 +328,12 @@
 
         {{-- Navigation --}}
         <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('dashboard*') || request()->is('/') ? 'active' : '' }}" href="/dashboard">
+                    <span class="nav-icon-box"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->is('locations*') ? 'active' : '' }}" href="/locations">
                     <span class="nav-icon-box"><i class="fa-solid fa-map-location-dot"></i></span>
