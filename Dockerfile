@@ -1,5 +1,8 @@
 FROM php:8.2-fpm
 
+# Identitas Unik Ujian 
+LABEL maintainer="farel_11"
+
 # Install dependensi sistem
 RUN apt-get update && apt-get install -y \
     git \
@@ -21,10 +24,10 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /var/www/html/farel
 
 # Copy semua file project
-COPY . /var/www/html
+COPY . /var/www/html/farel
 
 # Berikan hak akses awal
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /var/www/html/farel
